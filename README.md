@@ -12,18 +12,18 @@ O sistema permite o envio confiável de **mensagens de texto** (exibidas no Moni
 * **4x** Módulos RF 433 MHz ASK/OOK (2 transmissores FS1000A e 2 receptores MX-RM-5V)
 * **1x** Display LCD 16x2 com módulo adaptador I2C (conectado ao ESP32 receptor)
 * **2x** Computadores com Arduino IDE e Python 3 instalados
-* **2x** Protoboards, cabos jumpers, resistores (divisor de tensão 5 V para 3,3 V), capacitores de desacoplamento e antenas de fio rígido 
+* **2x** Protoboards, cabos jumpers, resistores (divisor de tensão 5 V para 3,3 V), capacitores de desacoplamento e antenas de fio rígido (~17,3 cm)
 
 ### Pinagem do ESP32 (Idêntica nas Duas Placas)
 
 Como ambas as placas operam com um par TX/RX para viabilizar o envio de dados e o retorno de confirmações (`ACK`), o mesmo firmware é gravado nos dois microcontroladores:
 
-| Componente                     | Pino do Módulo | GPIO do ESP32 | Observação Técnica |
-|                                |                |               | 
-| **Módulo RF Transmissor (TX)** | `DATA`         | `GPIO 33`     | Alimentação em `5V` (VIN) para maior alcance |
-| **Módulo RF Receptor (RX)**    | `DATA`         | `GPIO 32`     | Utilizar divisor resistivo (`5V -> 3,3V`) no pino de sinal |
-| **Display LCD I2C**            | `SDA`          | `GPIO 26`     | Conectado apenas no ESP32 receptor (endereços `0x27` ou `0x3F`) |
-| **Display LCD I2C**            | `SCL`          | `GPIO 27`     | Linha de clock do barramento I2C |
+| Componente | Pino do Módulo | GPIO do ESP32 | Observação Técnica |
+| :--- | :--- | :--- | :--- |
+| **Módulo RF Transmissor (TX)** | `DATA` | `GPIO 33` | Alimentação em `5V` (VIN) para maior alcance |
+| **Módulo RF Receptor (RX)** | `DATA` | `GPIO 32` | Utilizar divisor resistivo (`5V -> 3,3V`) no pino de sinal |
+| **Display LCD I2C** | `SDA` | `GPIO 26` | Conectado apenas no ESP32 receptor (endereços `0x27` ou `0x3F`) |
+| **Display LCD I2C** | `SCL` | `GPIO 27` | Linha de clock do barramento I2C |
 
 ---
 
@@ -37,14 +37,14 @@ Como ambas as placas operam com um par TX/RX para viabilizar o envio de dados e 
 ### 2. Camada de Enlace (Estrutura do Quadro)
 Todos os pacotes seguem o formato estrutural de até **21 bytes**, aceitando exclusivamente três tipos de quadro (`DATA`, `ACK` e `END`):
 
-| Campo    | Tamanho      | Descrição |
-|          |              |           
-| **FLAG** | 1 byte       | Delimitador de início do quadro (`0x7E`) |
-| **TYPE** | 1 byte       | `0x01` (`DATA`), `0x02` (`ACK`) ou `0x03` (`END`) |
-| **SEQ**  | 1 byte       | Número de sequência cíclico (`0` a `255`) |
-| **LEN**  | 1 byte       | Quantidade de bytes úteis transportados em `DATA` (`0` a `16`) |
+| Campo | Tamanho | Descrição |
+| :--- | :--- | :--- |
+| **FLAG** | 1 byte | Delimitador de início do quadro (`0x7E`) |
+| **TYPE** | 1 byte | `0x01` (`DATA`), `0x02` (`ACK`) ou `0x03` (`END`) |
+| **SEQ** | 1 byte | Número de sequência cíclico (`0` a `255`) |
+| **LEN** | 1 byte | Quantidade de bytes úteis transportados em `DATA` (`0` a `16`) |
 | **DATA** | 0 a 16 bytes | Carga útil da mensagem ou fragmento binário da imagem |
-| **FCS**  | 1 byte       | *Frame Check Sequence* para verificação de integridade |
+| **FCS** | 1 byte | *Frame Check Sequence* para verificação de integridade |
 
 * **Diferenciação entre Texto e Imagem:** Para respeitar o limite de três tipos de quadro, o tipo de conteúdo viaja no campo `DATA` do quadro `END` (`LEN = 1`), utilizando `0x01` para texto e `0x02` para imagem.
 * **Leitura Guiada por `LEN`:** Após detectar a `FLAG` inicial (`0x7E`), o receptor contabiliza exatamente os `LEN` bytes indicados no cabeçalho, evitando encerramento prematuro caso o byte `0x7E` ocorra naturalmente nos dados binários de uma imagem.
